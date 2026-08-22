@@ -1,6 +1,6 @@
 # 🔬 On-Road Real-Time Animal Detection & Alert System
 
-> 🏅 Top 100 — 12th National Technology Parade, Israel
+> 🏅 Top 100 — 12th National Technology Parade, Jordan
 > Graduation Project · Jordan University of Science and Technology · 2024–2025
 
 ## Overview
@@ -60,7 +60,7 @@ A real-time edge-to-cloud road safety system that detects animals on roads and a
 
 ## Recognition
 
-- Top 100 — 12th National Technology Parade, Israel
+- Top 100 — 12th National Technology Parade, Jordan
 - Grade B+ on both Graduation Project phases
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
