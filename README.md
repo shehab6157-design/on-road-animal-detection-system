@@ -38,6 +38,16 @@ A real-time edge-to-cloud road safety system that detects animals on roads and a
 6. AWS Lambda applies Haversine formula to find all vehicles within 1 km
 7. SNS alert sent to all nearby vehicles automatically
 
+```mermaid
+flowchart LR
+  A[Noir camera<br>Raspberry Pi 5] --> B[YOLOv5s<br>280 ms per frame]
+  B -->|animal detected| C[Audio alert<br>for driver]
+  B --> D[GPS fix<br>SIM7600 LTE]
+  D -->|MQTT over TLS| E[AWS IoT Core]
+  E --> F[Lambda<br>Haversine 1 km]
+  F --> G[SNS alert to<br>nearby vehicles]
+```
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -48,6 +58,13 @@ A real-time edge-to-cloud road safety system that detects animals on roads and a
 | Cloud | AWS IoT Core, Lambda, SNS, DynamoDB |
 | Security | X.509 Certificates, TLS 1.2 |
 | Location | GPS NMEA 0183, Haversine Formula |
+
+## Limits and next steps
+
+- **Weakest classes:** sheep (recall 0.651) and cows (recall 0.679) are missed more often than dogs and horses, so a real deployment needs more training images for them.
+- **Four classes only:** the model knows dogs, horses, cows and sheep. Other animals are not detected.
+- **Prototype, not a product:** the results above come from the graduation project evaluation, not from long-term road trials. Field testing across day, night and weather is the next step.
+- **Connectivity:** alerts rely on the 4G LTE link, so coverage gaps on rural roads would delay warnings.
 
 ## Team
 
