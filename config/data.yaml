@@ -1,0 +1,8 @@
+# data.yaml for YOLOv5 custom animal detection (dog, horse, cow, sheep)
+
+train: /content/dataset/images/train
+val: /content/dataset/images/val
+
+nc: 4  # number of classes
+
+names: ['dog', 'horse', 'sheep', 'cow']
