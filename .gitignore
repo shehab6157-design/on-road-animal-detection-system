@@ -14,3 +14,6 @@ dataset/
 __pycache__/
 *.pyc
 .env
+
+# Local detection log written by edge/main.py
+detections.csv
