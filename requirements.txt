@@ -1,0 +1,6 @@
+# Raspberry Pi (edge)
+torch
+opencv-python
+pandas
+pyserial
+awsiotsdk
