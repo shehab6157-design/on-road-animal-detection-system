@@ -1,0 +1,16 @@
+# AWS IoT certificates and keys - never commit these
+certs/
+*.pem
+*.pem.crt
+*.pem.key
+*.key
+*.crt
+
+# Model weights and datasets
+*.pt
+dataset/
+
+# Python
+__pycache__/
+*.pyc
+.env
