@@ -32,7 +32,7 @@ A real-time edge-to-cloud road safety system that detects animals on roads and a
 
 1. Noir camera captures road footage on Raspberry Pi 5
 2. YOLOv5 model detects animals at about 340 ms per frame
-3. On detection — audio alert plays immediately for the driver
+3. On detection — audio alert plays immediately for the driver, and the detection is logged locally
 4. GPS coordinates retrieved from SIM7600 LTE module
 5. Detection data published over MQTT with TLS encryption to AWS IoT Core
 6. AWS Lambda stores each device location in DynamoDB and applies the Haversine formula to find all vehicles within 1 km
@@ -51,7 +51,9 @@ flowchart LR
 ## Repository structure
 
 ```
-edge/detect.py            YOLOv5 detection loop on the Raspberry Pi (class + confidence filter)
+edge/main.py              Full pipeline: detect -> driver alert -> GPS -> AWS IoT Core, and receive nearby warnings
+edge/core.py              Hardware-free helpers (GPS parsing, detection filter, message format, cooldown)
+edge/detect.py            Detection-only loop from the report (class + confidence filter)
 cloud/gps_publisher.py    Reads GPS from the SIM7600 and publishes to AWS IoT Core over MQTT/TLS
 cloud/subscriber.py       Test subscriber for the raspberry/data topic
 cloud/lambda_function.py  Lambda: stores device locations in DynamoDB, alerts devices within 1 km
@@ -59,30 +61,38 @@ config/data.yaml          YOLOv5 training config (4 classes)
 config/wvdial.conf        Cellular dial-up config for the SIM7600
 aws/iot-policy.json       Least-privilege IoT policy for the device
 aws/iot-rule.sql          IoT rule that forwards messages to Lambda
+tests/test_core.py        Unit tests (no hardware needed)
 ```
 
-The code is taken from the project report (Chapter 4). Model weights, the dataset and the
+The code in `cloud/`, `config/`, `aws/` and `edge/detect.py` is taken from the project report (Chapter 4);
+`edge/main.py` connects those parts into one loop, following the report's pseudocode. Model weights, the dataset and the
 AWS certificates are not included.
 
 ## How to run
 
-On the Raspberry Pi:
+On the Raspberry Pi (needs `best.pt` weights, an AWS IoT "Thing" with its X.509 certificates in `./certs/`):
 
 ```bash
 pip install -r requirements.txt
-# put your trained weights at ./best.pt
-python edge/detect.py
+export DEVICE_ID=vehicle-1
+export IOT_ENDPOINT=<your-endpoint>-ats.iot.<region>.amazonaws.com
+python edge/main.py
 ```
 
-GPS publishing (needs an AWS IoT "Thing" and its X.509 certificates in `./certs/`,
-and your endpoint set in the script):
-
-```bash
-python cloud/gps_publisher.py
-```
+`main.py` sends two kinds of messages to `raspberry/data`: a `location` update every 5 s and an
+`event` when an animal is detected (at most one per 10 s per sighting). It listens on
+`raspberry/<DEVICE_ID>/alert` and plays the alert (`alert.wav` via `aplay`, if present) when a
+nearby vehicle reports an animal. Detections are also logged to `detections.csv`.
 
 In AWS: create the IoT policy from `aws/iot-policy.json`, an IoT rule using `aws/iot-rule.sql`
 that triggers `cloud/lambda_function.py`, and a DynamoDB table named `DevicesLocation`.
+
+Tests (no hardware or AWS needed):
+
+```bash
+pip install pytest
+python -m pytest tests
+```
 
 ## Tech Stack
 
@@ -102,7 +112,7 @@ that triggers `cloud/lambda_function.py`, and a DynamoDB table named `DevicesLoc
 - **Prototype, not a product:** the results above come from the graduation project evaluation, not from long-term road trials. Field testing across day, night and weather is the next step.
 - **Connectivity:** alerts rely on the 4G LTE link, so coverage gaps on rural roads would delay warnings.
 - **Speed:** about 2-3 FPS on the Pi 5 is fine for slow road scenes but below video frame rates. Inference takes over 97% of the time per frame.
-- **Integration:** in this version detection and GPS publishing run as separate scripts, and the publisher's message format needs a small mapping to match the Lambda's expected fields (`device_id`, `latitude`, `longitude`).
+- **Integration test status:** `edge/main.py` was checked with unit tests and a simulated camera, GPS and AWS; it has not yet been re-run on the physical Pi since being combined.
 
 ## Team
 
