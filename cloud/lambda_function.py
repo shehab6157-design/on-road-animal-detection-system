@@ -6,6 +6,8 @@ Transcribed from Figure 4-9 of the project report.
 """
 import json
 import math
+from decimal import Decimal
+
 import boto3
 
 # Initialize AWS resources
@@ -44,11 +46,13 @@ def lambda_handler(event, context):
     # Reference to DynamoDB table
     table = dynamodb.Table(TABLE_NAME)
 
-    # Always update the device's location
+    # Always update the device's location.
+    # Changed from the report: boto3 rejects Python floats for DynamoDB numbers,
+    # so they are stored as Decimal.
     table.put_item(Item={
         "device_id": device_id,
-        "latitude": lat,
-        "longitude": lon,
+        "latitude": Decimal(str(lat)),
+        "longitude": Decimal(str(lon)),
     })
 
     # If this is an event (detection), find nearby devices and alert them

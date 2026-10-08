@@ -87,6 +87,10 @@ nearby vehicle reports an animal. Detections are also logged to `detections.csv`
 In AWS: create the IoT policy from `aws/iot-policy.json`, an IoT rule using `aws/iot-rule.sql`
 that triggers `cloud/lambda_function.py`, and a DynamoDB table named `DevicesLocation`.
 
+The policy from the report only lets the client ID `Raspberry-Pi` connect. To run more than one
+vehicle, change its `iot:Connect` resource to `client/${iot:Connection.Thing.ThingName}` and name
+each IoT Thing after its `DEVICE_ID` (for example `vehicle-1`).
+
 Tests (no hardware or AWS needed):
 
 ```bash
